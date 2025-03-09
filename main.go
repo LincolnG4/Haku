@@ -1,20 +1,18 @@
 package main
 
-import "net/http"
+import (
+	"log"
+	"net/http"
 
-type homeHandler struct{}
-
-func (h *homeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("This is my home page"))
-}
+	"github.com/LincolnG4/Haku/internal/controllers"
+)
 
 func main() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/home", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World"))
-	})
+	mux.HandleFunc("POST /pipelines", controllers.CreatePipeline)
 
+	log.Println("Starting server on port 8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		panic(err)
 	}
