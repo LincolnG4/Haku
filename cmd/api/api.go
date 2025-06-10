@@ -28,7 +28,7 @@ type dbConfig struct {
 	maxIdleTime  string
 }
 
-func (a *application) mount() http.Handler {
+func (app *application) mount() http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(middleware.Recoverer)
@@ -42,7 +42,18 @@ func (a *application) mount() http.Handler {
 	router.Use(middleware.Timeout(60 * time.Second))
 
 	router.Route("/v1", func(router chi.Router) {
-		router.Get("/health", a.healthCheckHandler)
+		router.Get("/health", app.healthCheckHandler)
+
+		// Pipeline
+		router.Route("/pipelines", func(router chi.Router) {
+			router.Post("/", app.createPipelineHandler)
+		})
+
+		// Task
+		router.Route("/Tasks", func(router chi.Router) {
+			router.Post("/", app.createPipelineHandler)
+		})
+
 	})
 
 	return router

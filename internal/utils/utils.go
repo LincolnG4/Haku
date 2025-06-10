@@ -25,7 +25,7 @@ func WriteJsonError(w http.ResponseWriter, status int, message string) error {
 		Error string `json:error`
 	}
 
-	return WriteJson(w, status, &envelope{message})
+	return WriteJson(w, status, &envelope{Error: message})
 }
 
 func GetEnvString(key, fallback string) string {

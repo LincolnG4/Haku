@@ -10,11 +10,16 @@ type UsersStore struct {
 }
 
 type User struct {
-	ID        int64        `json:"id"`
-	Username  string       `json:"username"`
-	Email     []*Task      `json:"email"`
-	Password  func() error `json:"-"`
-	CreatedAt string       `json:"created_at"`
+	ID        int64    `json:"id"`
+	Username  string   `json:"username"`
+	Email     string   `json:"email"`
+	Password  password `json:"-"`
+	CreatedAt string   `json:"created_at"`
+}
+
+type password struct {
+	text *string
+	hash []byte
 }
 
 func (s *UsersStore) Create(ctx context.Context, user User) error {

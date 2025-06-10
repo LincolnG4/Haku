@@ -11,6 +11,7 @@ type Pipelines struct {
 	ID     int64  `json:"id"`
 	UserID int64  `json:"user_id"`
 	Name   string `json:"name"`
+	Status string `json:"status"`
 
 	// DAG config
 	Tasks      map[string]*Task `json:"tasks"`
@@ -21,14 +22,6 @@ type Pipelines struct {
 	// Creation Info
 	CreatedAt string `json:"create_at"`
 	UpdatedAt string `json:"update_at"`
-}
-
-type Task struct {
-	ID      int64         `json:"id"`
-	Name    string        `json:"name"`
-	Edges   []*Task       `json:"edges"`
-	Task    func() error  `json:"task"`
-	Timeout time.Duration `json:"timeout"`
 }
 
 type PipelinesStore struct {
