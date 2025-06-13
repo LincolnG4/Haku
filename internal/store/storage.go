@@ -7,7 +7,8 @@ import (
 
 type Storage struct {
 	Pipelines interface {
-		Create(context.Context, Pipelines) error
+		Create(context.Context, *Pipelines) error
+		GetByID(context.Context, int64) (Pipelines, error)
 	}
 	Users interface {
 		Create(context.Context, User) error
