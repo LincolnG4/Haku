@@ -10,21 +10,21 @@ type UsersStore struct {
 }
 
 type User struct {
-	ID        int64    `json:"id"`
-	Username  string   `json:"username"`
-	Email     string   `json:"email"`
-	Password  password `json:"-"`
-	CreatedAt string   `json:"created_at"`
+	ID        int64  `json:"id"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	Password  string `json:"-"`
+	CreatedAt string `json:"created_at"`
 }
 
-type password struct {
+type Password struct {
 	text *string
 	hash []byte
 }
 
-func (s *UsersStore) Create(ctx context.Context, user User) error {
+func (s *UsersStore) Create(ctx context.Context, user *User) error {
 	query := `
-	INSERT INTO pipelines (username, password, email)
+	INSERT INTO users (username, password, email)
 	VALUES  ($1,$2,$3) RETURNING id, created_at
 	`
 

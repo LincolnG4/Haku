@@ -49,6 +49,8 @@ func (app *application) mount() http.Handler {
 			router.Post("/", app.createPipelineHandler)
 
 			router.Route("/{pipelineID}", func(router chi.Router) {
+				router.Use(app.pipelineContextMiddleware)
+				// Routes
 				router.Get("/", app.getPipelineHandler)
 				router.Patch("/", app.updatePipelineHandler)
 				router.Delete("/", app.deletePipelineHandler)
