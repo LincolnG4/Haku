@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -9,12 +8,14 @@ import (
 	"github.com/LincolnG4/Haku/internal/store"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"go.uber.org/zap"
 )
 
 type application struct {
 	config        config
 	store         store.Storage
 	authenticator auth.Authenticator
+	logger        *zap.SugaredLogger
 }
 
 type config struct {
@@ -123,6 +124,6 @@ func (a *application) run(mux http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
-	log.Printf("server has started at %s", a.config.addr)
+	a.logger.Info("server has started at", "addr", a.config.addr)
 	return srv.ListenAndServe()
 }

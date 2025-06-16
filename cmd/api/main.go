@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 	"time"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/LincolnG4/Haku/internal/db"
 	"github.com/LincolnG4/Haku/internal/store"
 	"github.com/LincolnG4/Haku/internal/utils"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -36,10 +36,14 @@ func main() {
 		},
 	}
 
+	// Logger
+	logger := zap.Must(zap.NewProduction()).Sugar()
+	defer logger.Sync()
+
 	// Setup database connection
 	db, err := db.New(cfg.db.addr, cfg.db.maxOpenConns, cfg.db.maxIdleConns, cfg.db.maxIdleTime)
 	if err != nil {
-		log.Panic(err)
+		logger.Fatal(err)
 	}
 	defer db.Close()
 
@@ -51,10 +55,11 @@ func main() {
 		config:        cfg,
 		store:         store,
 		authenticator: jwtAuthenticator,
+		logger:        logger,
 	}
 
 	// Start server
 	mux := app.mount()
-	log.Fatal(app.run(mux))
+	logger.Fatal(app.run(mux))
 
 }
