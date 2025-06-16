@@ -86,9 +86,21 @@ func (app *application) mount() http.Handler {
 
 		// User
 		router.Route("/users", func(router chi.Router) {
+			router.Use(app.AuthTokenMiddleware)
 			router.Route("/{userID}", func(router chi.Router) {
-				router.Use(app.AuthTokenMiddleware)
 				router.Get("/", app.getUserHandler)
+			})
+
+		})
+
+		// Organizations
+		router.Route("/organizations", func(router chi.Router) {
+			router.Use(app.AuthTokenMiddleware)
+
+			router.Post("/", app.createOrganizationHandler)
+			router.Route("/{organizationID}", func(router chi.Router) {
+				router.Use(app.organizationContextMiddleware)
+				router.Get("/", app.getOrganizationHandler)
 			})
 
 		})

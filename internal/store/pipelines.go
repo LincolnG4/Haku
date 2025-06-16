@@ -97,6 +97,7 @@ func (s *PipelinesStore) GetByID(ctx context.Context, pipelineID int64) (*Pipeli
 
 	return &pipeline, nil
 }
+
 func (s *PipelinesStore) Delete(ctx context.Context, pipelineID int64) error {
 	query := `
 		DELETE FROM pipelines WHERE id=$1

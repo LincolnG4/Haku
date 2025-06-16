@@ -27,11 +27,16 @@ type Storage struct {
 		GetByID(context.Context, int64) (*User, error)
 		GetByEmail(context.Context, string) (*User, error)
 	}
+	Organization interface {
+		Create(context.Context, *Organization) error
+		GetByID(context.Context, int64) (*Organization, error)
+	}
 }
 
 func NewPostgresStorage(db *sql.DB) Storage {
 	return Storage{
-		Pipelines: &PipelinesStore{db},
-		Users:     &UsersStore{db},
+		Pipelines:    &PipelinesStore{db},
+		Users:        &UsersStore{db},
+		Organization: &OrganizationStore{db},
 	}
 }
