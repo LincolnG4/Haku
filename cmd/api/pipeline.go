@@ -29,10 +29,11 @@ func (app *application) createPipelineHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	// TO DO CREATE `USER` IMPLEMENTATION
+	user := getUserFromContext(r)
+
 	ctx := r.Context()
 	pipeline := &store.Pipelines{
-		UserID: 2,
+		UserID: user.ID,
 		Name:   payload.Name,
 	}
 

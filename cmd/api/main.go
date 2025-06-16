@@ -2,13 +2,21 @@ package main
 
 import (
 	"log"
+	"os"
+	"time"
 
+	"github.com/LincolnG4/Haku/internal/auth"
 	"github.com/LincolnG4/Haku/internal/db"
 	"github.com/LincolnG4/Haku/internal/store"
 	"github.com/LincolnG4/Haku/internal/utils"
 )
 
 func main() {
+	tokenSecret, ok := os.LookupEnv("AUTH_TOKEN_SECRET")
+	if !ok {
+		panic("missing AUTH_TOKEN_SECRET env ")
+	}
+
 	// Setup Config
 	cfg := config{
 		addr: utils.GetEnvString("ADDR", ":8080"),
@@ -19,6 +27,13 @@ func main() {
 			maxIdleTime:  utils.GetEnvString("DB_MAX_IDLE_TIME", "15m"),
 		},
 		env: utils.GetEnvString("ENV", "development"),
+		auth: authConfig{
+			token: tokenConfig{
+				secret:     tokenSecret,
+				expiration: 24 * time.Hour,
+				iss:        "Haku",
+			},
+		},
 	}
 
 	// Setup database connection
@@ -29,11 +44,13 @@ func main() {
 	defer db.Close()
 
 	store := store.NewPostgresStorage(db)
+	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.iss, cfg.auth.token.iss)
 
 	// Setup API server
 	app := application{
-		config: cfg,
-		store:  store,
+		config:        cfg,
+		store:         store,
+		authenticator: jwtAuthenticator,
 	}
 
 	// Start server

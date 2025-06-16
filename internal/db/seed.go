@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"math/rand/v2"
 	"regexp"  // Added for sanitization
@@ -92,7 +93,7 @@ func formatEmailLocalPart(name string) string {
 	return s
 }
 
-func Seed(store store.Storage) {
+func Seed(store store.Storage, db *sql.DB) {
 	ctx := context.Background()
 
 	users := generateUsers(50)
@@ -128,7 +129,6 @@ func generateUsers(n int) []*store.User {
 		users[i] = &store.User{
 			Username: name,
 			Email:    emailLocalPart + "@ghibli.com",
-			Password: "sds",
 		}
 	}
 	return users

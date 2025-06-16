@@ -5,20 +5,39 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/LincolnG4/Haku/internal/auth"
 	"github.com/LincolnG4/Haku/internal/store"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
 
 type application struct {
-	config config
-	store  store.Storage
+	config        config
+	store         store.Storage
+	authenticator auth.Authenticator
 }
 
 type config struct {
-	addr string
+	addr string `validate:"required"`
 	db   dbConfig
 	env  string
+	auth authConfig
+}
+
+type authConfig struct {
+	basic basicConfig
+	token tokenConfig
+}
+
+type basicConfig struct {
+	user     string
+	password string
+}
+
+type tokenConfig struct {
+	secret     string
+	expiration time.Duration
+	iss        string
 }
 
 type dbConfig struct {
@@ -46,6 +65,7 @@ func (app *application) mount() http.Handler {
 
 		// Pipeline
 		router.Route("/pipelines", func(router chi.Router) {
+			router.Use(app.AuthTokenMiddleware)
 			router.Post("/", app.createPipelineHandler)
 
 			router.Route("/{pipelineID}", func(router chi.Router) {
@@ -58,10 +78,25 @@ func (app *application) mount() http.Handler {
 		})
 
 		// Task
-		router.Route("/Tasks", func(router chi.Router) {
-			router.Post("/", app.createPipelineHandler)
+		// router.Route("/Tasks", func(router chi.Router) {
+		// 	router.Route("/{taskID}", func(router chi.Router) {
+		// 		router.Post("/", app.createPipelineHandler)
+		// 	})
+		// })
+
+		// User
+		router.Route("/users", func(router chi.Router) {
+			router.Route("/{userID}", func(router chi.Router) {
+				router.Use(app.AuthTokenMiddleware)
+				router.Get("/", app.getUserHandler)
+			})
+
 		})
 
+		router.Route("/auth", func(router chi.Router) {
+			router.Post("/user", app.registerUserHandler)
+			router.Post("/token", app.createTokenHandler)
+		})
 	})
 
 	return router

@@ -29,7 +29,7 @@ func ReadJson(r *http.Request, data any) error {
 
 func WriteJsonError(w http.ResponseWriter, status int, message string) error {
 	type envelope struct {
-		Error string `json:error`
+		Error string `json:"error"`
 	}
 
 	return WriteJson(w, status, &envelope{Error: message})
@@ -37,11 +37,12 @@ func WriteJsonError(w http.ResponseWriter, status int, message string) error {
 
 func JsonResponse(w http.ResponseWriter, status int, data any) error {
 	type envelope struct {
-		Data any `json:data`
+		Data any `json:"data"`
 	}
 
 	return WriteJson(w, status, &envelope{Data: data})
 }
+
 func GetURLParamInt64(r *http.Request, param string) (int64, error) {
 	return strconv.ParseInt(chi.URLParam(r, param), 10, 64)
 }

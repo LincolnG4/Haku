@@ -7,7 +7,6 @@ import (
 )
 
 func (a *application) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	// IMPLEMENT HEALTH CHECKS
 	data := map[string]string{
 		"status": "ok",
 		"env":    a.config.env,
