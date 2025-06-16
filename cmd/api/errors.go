@@ -27,7 +27,7 @@ func (app *application) badRequestError(w http.ResponseWriter, r *http.Request, 
 
 func (app *application) notFoundError(w http.ResponseWriter, r *http.Request, err error) {
 	// to do: create a struct
-	app.logger.Warnf("not found error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
+	app.logger.Warnw("not found error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 	utils.WriteJsonError(w, http.StatusNotFound, "resource not found")
 }
 
