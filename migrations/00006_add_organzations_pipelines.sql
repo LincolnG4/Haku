@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 ALTER TABLE pipelines 
-ADD COLUMN organization_id bigserial REFERENCES organizations(id);
+ADD COLUMN organization_id INTEGER REFERENCES organizations(id);
 
 ALTER TABLE pipelines DROP COLUMN user_id;
 -- +goose StatementEnd
@@ -10,5 +10,5 @@ ALTER TABLE pipelines DROP COLUMN user_id;
 -- +goose StatementBegin
 ALTER TABLE pipelines DROP COLUMN organization_id;
 ALTER TABLE pipelines 
-ADD COLUMN user_id BIGSERIAL NOT NULL REFERENCES users(id) ON DELETE CASCADE;
+ADD COLUMN user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE;
 -- +goose StatementEnd

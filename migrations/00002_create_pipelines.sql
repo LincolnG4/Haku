@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS pipelines (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGSERIAL NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(255),
     status VARCHAR(15),
     -- version control

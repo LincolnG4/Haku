@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS tasks (
     id BIGSERIAL PRIMARY KEY,
-    pipeline_id bigserial NOT NULL REFERENCES pipelines(id) ON DELETE CASCADE,
+    pipeline_id INTEGER NOT NULL REFERENCES pipelines(id) ON DELETE CASCADE,
     name VARCHAR NOT NULL,
     description VARCHAR(500),
     ui_display INT,
