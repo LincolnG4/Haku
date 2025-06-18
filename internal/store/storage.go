@@ -29,7 +29,10 @@ type Storage struct {
 	}
 	Organization interface {
 		Create(context.Context, *Organization) error
-		GetByID(context.Context, int64) (*Organization, error)
+		GetByID(context.Context, int64) (Organization, error)
+		AddMember(context.Context, *OrganizationMember) error
+		GetMembers(context.Context, int64) ([]OrganizationMember, error)
+		GetMember(context.Context, int64, int64) (OrganizationMember, error)
 	}
 }
 

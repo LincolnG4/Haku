@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -44,5 +45,9 @@ func JsonResponse(w http.ResponseWriter, status int, data any) error {
 }
 
 func GetURLParamInt64(r *http.Request, param string) (int64, error) {
-	return strconv.ParseInt(chi.URLParam(r, param), 10, 64)
+	paramValue := chi.URLParam(r, param)
+	if paramValue == "" {
+		return 0, fmt.Errorf("URL parameter '%s' is empty or not found", param)
+	}
+	return strconv.ParseInt(paramValue, 10, 64)
 }

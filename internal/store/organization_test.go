@@ -66,7 +66,7 @@ func TestOrganizationStore_GetByID(t *testing.T) {
 		name          string
 		orgID         int64
 		mockSetup     func()
-		expectedOrg   *Organization
+		expectedOrg   Organization
 		expectedError error
 	}{
 		{
@@ -80,7 +80,7 @@ func TestOrganizationStore_GetByID(t *testing.T) {
 					WithArgs(1).
 					WillReturnRows(rows)
 			},
-			expectedOrg: &Organization{
+			expectedOrg: Organization{
 				ID:          1,
 				Name:        "Test Org",
 				Description: "Test Description",
@@ -95,7 +95,7 @@ func TestOrganizationStore_GetByID(t *testing.T) {
 					WithArgs(999).
 					WillReturnError(sql.ErrNoRows)
 			},
-			expectedOrg:   nil,
+			expectedOrg:   Organization{},
 			expectedError: ErrNotFound,
 		},
 	}
@@ -112,10 +112,9 @@ func TestOrganizationStore_GetByID(t *testing.T) {
 			if tt.expectedError != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.expectedError, err)
-				assert.Nil(t, org)
+				assert.Equal(t, tt.expectedOrg, org)
 			} else {
 				assert.NoError(t, err)
-				assert.NotNil(t, org)
 				assert.Equal(t, tt.expectedOrg.ID, org.ID)
 				assert.Equal(t, tt.expectedOrg.Name, org.Name)
 				assert.Equal(t, tt.expectedOrg.Description, org.Description)

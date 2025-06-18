@@ -103,6 +103,11 @@ func (app *application) mount() http.Handler {
 				router.Use(app.organizationContextMiddleware)
 
 				router.Get("/", app.getOrganizationHandler)
+
+				router.Route("/members", func(router chi.Router) {
+					router.Post("/", app.addMemberHandler)
+					router.Get("/", app.getMembersHandler)
+				})
 			})
 
 		})

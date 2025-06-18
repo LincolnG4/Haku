@@ -1,3 +1,32 @@
+# Binaries
+bin/
+build/
+
+# IDE files
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Go specific
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Air live reload
+tmp/
+
 *.rest
 
 .env*
