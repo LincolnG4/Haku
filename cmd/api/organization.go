@@ -73,6 +73,12 @@ type AddMemberPayload struct {
 func (app *application) addMemberHandler(w http.ResponseWriter, r *http.Request) {
 	organization := app.getOrganizationFromContext(r)
 
+	user := getUserFromContext(r)
+	if !app.isUserAdmin(r.Context(), organization.ID, user.ID) {
+		app.forbiddenResponse(w, r)
+		return
+	}
+
 	var payload AddMemberPayload
 	if err := utils.ReadJson(r, &payload); err != nil {
 		app.badRequestError(w, r, err)
@@ -99,6 +105,12 @@ func (app *application) addMemberHandler(w http.ResponseWriter, r *http.Request)
 
 func (app *application) getMembersHandler(w http.ResponseWriter, r *http.Request) {
 	organization := app.getOrganizationFromContext(r)
+
+	user := getUserFromContext(r)
+	if !app.isUserMemberOfOrganization(r.Context(), organization.ID, user.ID) {
+		app.forbiddenResponse(w, r)
+		return
+	}
 
 	ctx := r.Context()
 	members, err := app.store.Organizations.GetMembers(ctx, organization.ID)

@@ -24,8 +24,8 @@ type Storage struct {
 	}
 	Users interface {
 		Create(context.Context, *User) error
-		GetByID(context.Context, int64) (User, error)
-		GetByEmail(context.Context, string) (User, error)
+		GetByID(context.Context, int64) (*User, error)
+		GetByEmail(context.Context, string) (*User, error)
 	}
 	Organizations interface {
 		Create(context.Context, *Organization) error

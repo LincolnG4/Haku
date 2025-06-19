@@ -118,7 +118,7 @@ func TestUserStore_GetByID(t *testing.T) {
 			if tt.expectedError != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.expectedError, err)
-				assert.Equal(t, tt.expectedUser, user)
+				assert.Nil(t, user)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expectedUser.ID, user.ID)
@@ -198,7 +198,7 @@ func TestUserStore_GetByEmail(t *testing.T) {
 			if tt.expectedError != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.expectedError, err)
-				assert.Equal(t, tt.expectedUser, user)
+				assert.Nil(t, user)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expectedUser.ID, user.ID)

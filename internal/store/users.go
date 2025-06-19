@@ -65,7 +65,7 @@ func (s *UsersStore) Create(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (s *UsersStore) GetByID(ctx context.Context, userID int64) (User, error) {
+func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	query := `
 	SELECT id, username, password, email,created_at,updated_at
 	FROM users
@@ -91,16 +91,16 @@ func (s *UsersStore) GetByID(ctx context.Context, userID int64) (User, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return User{}, ErrNotFound
+			return nil, ErrNotFound
 		default:
-			return User{}, err
+			return nil, err
 		}
 	}
 
-	return user, nil
+	return &user, nil
 }
 
-func (s *UsersStore) GetByEmail(ctx context.Context, email string) (User, error) {
+func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error) {
 	query := `
 	SELECT id, username, email, password,created_at,updated_at
 	FROM users
@@ -126,11 +126,11 @@ func (s *UsersStore) GetByEmail(ctx context.Context, email string) (User, error)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return User{}, ErrNotFound
+			return nil, ErrNotFound
 		default:
-			return User{}, err
+			return nil, err
 		}
 	}
 
-	return user, nil
+	return &user, nil
 }
