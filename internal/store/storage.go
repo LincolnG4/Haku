@@ -18,16 +18,16 @@ var (
 type Storage struct {
 	Pipelines interface {
 		Create(context.Context, *Pipelines) error
-		GetByID(context.Context, int64) (*Pipelines, error)
+		GetByID(context.Context, int64) (Pipelines, error)
 		Delete(context.Context, int64) error
 		Update(context.Context, *Pipelines) error
 	}
 	Users interface {
 		Create(context.Context, *User) error
-		GetByID(context.Context, int64) (*User, error)
-		GetByEmail(context.Context, string) (*User, error)
+		GetByID(context.Context, int64) (User, error)
+		GetByEmail(context.Context, string) (User, error)
 	}
-	Organization interface {
+	Organizations interface {
 		Create(context.Context, *Organization) error
 		GetByID(context.Context, int64) (Organization, error)
 		AddMember(context.Context, *OrganizationMember) error
@@ -38,8 +38,8 @@ type Storage struct {
 
 func NewPostgresStorage(db *sql.DB) Storage {
 	return Storage{
-		Pipelines:    &PipelinesStore{db},
-		Users:        &UsersStore{db},
-		Organization: &OrganizationStore{db},
+		Pipelines:     &PipelinesStore{db},
+		Users:         &UsersStore{db},
+		Organizations: &OrganizationStore{db},
 	}
 }

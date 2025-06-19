@@ -22,7 +22,7 @@ type User struct {
 }
 
 type password struct {
-	plaintText *string
+	plaintText string
 	hash       []byte
 }
 
@@ -32,7 +32,7 @@ func (p *password) Set(plaintextPassword string) error {
 		return err
 	}
 
-	p.plaintText = &plaintextPassword
+	p.plaintText = plaintextPassword
 	p.hash = hash
 	return nil
 }
@@ -44,7 +44,7 @@ func (p *password) Matches(plaintextPassword string) bool {
 func (s *UsersStore) Create(ctx context.Context, user *User) error {
 	query := `
 	INSERT INTO users (username, password, email)
-	VALUES  ($1,$2,$3) RETURNING id, created_at
+	VALUES  ($1,$2,$3) RETURNING id, created_at 
 	`
 
 	err := s.db.QueryRowContext(
@@ -65,7 +65,7 @@ func (s *UsersStore) Create(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
+func (s *UsersStore) GetByID(ctx context.Context, userID int64) (User, error) {
 	query := `
 	SELECT id, username, password, email,created_at,updated_at
 	FROM users
@@ -91,16 +91,16 @@ func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrNotFound
+			return User{}, ErrNotFound
 		default:
-			return nil, err
+			return User{}, err
 		}
 	}
 
-	return &user, nil
+	return user, nil
 }
 
-func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error) {
+func (s *UsersStore) GetByEmail(ctx context.Context, email string) (User, error) {
 	query := `
 	SELECT id, username, email, password,created_at,updated_at
 	FROM users
@@ -126,11 +126,11 @@ func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrNotFound
+			return User{}, ErrNotFound
 		default:
-			return nil, err
+			return User{}, err
 		}
 	}
 
-	return &user, nil
+	return user, nil
 }

@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	"fmt"
+
+	"github.com/LincolnG4/Haku/internal/auth"
 	"github.com/LincolnG4/Haku/internal/store"
 	"github.com/LincolnG4/Haku/internal/utils"
 	"github.com/golang-jwt/jwt/v5"
@@ -88,13 +91,18 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// generate the token
-	claims := jwt.MapClaims{
-		"sub": user.ID,
-		"exp": time.Now().Add(app.config.auth.token.expiration).Unix(),
-		"iat": time.Now().Unix(),
-		"nbf": time.Now().Unix(),
-		"iss": app.config.auth.token.iss,
-		"aud": app.config.auth.token.iss,
+	claims := &auth.MyClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   fmt.Sprintf("%d", user.ID),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(app.config.auth.token.expiration)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Issuer:    app.config.auth.token.iss,
+			Audience:  []string{app.config.auth.token.iss},
+		},
+		UserID:   user.ID,
+		Username: user.Username,
+		Email:    user.Email,
 	}
 
 	token, err := app.authenticator.GenerateToken(claims)

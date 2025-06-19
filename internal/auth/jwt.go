@@ -6,6 +6,14 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// MyClaims defines the custom JWT claims structure for type safety
+type MyClaims struct {
+	jwt.RegisteredClaims
+	UserID   int64  `json:"user_id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
 type JWTAuthenticator struct {
 	secret string
 	aud    string
@@ -13,6 +21,9 @@ type JWTAuthenticator struct {
 }
 
 func NewJWTAuthenticator(secret, aud, iss string) *JWTAuthenticator {
+	if secret == "" {
+		panic("JWT secret must not be empty")
+	}
 	return &JWTAuthenticator{
 		secret: secret,
 		aud:    aud,
@@ -20,7 +31,7 @@ func NewJWTAuthenticator(secret, aud, iss string) *JWTAuthenticator {
 	}
 }
 
-func (a *JWTAuthenticator) GenerateToken(claims jwt.Claims) (string, error) {
+func (a *JWTAuthenticator) GenerateToken(claims *MyClaims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(a.secret))
 	if err != nil {
@@ -30,8 +41,9 @@ func (a *JWTAuthenticator) GenerateToken(claims jwt.Claims) (string, error) {
 	return tokenString, nil
 }
 
-func (a *JWTAuthenticator) ValidateToken(token string) (*jwt.Token, error) {
-	return jwt.Parse(token, func(t *jwt.Token) (any, error) {
+func (a *JWTAuthenticator) ValidateToken(tokenString string) (*jwt.Token, *MyClaims, error) {
+	claims := &MyClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method %v", t.Header["alg"])
 		}
@@ -41,4 +53,11 @@ func (a *JWTAuthenticator) ValidateToken(token string) (*jwt.Token, error) {
 		jwt.WithIssuer(a.iss),
 		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Name}),
 	)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !token.Valid {
+		return nil, nil, fmt.Errorf("invalid token")
+	}
+	return token, claims, nil
 }

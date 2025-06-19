@@ -40,7 +40,7 @@ func (app *application) createOrganizationHandler(w http.ResponseWriter, r *http
 	}
 
 	// Create organization
-	if err := app.store.Organization.Create(ctx, organization); err != nil {
+	if err := app.store.Organizations.Create(ctx, organization); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
@@ -54,7 +54,7 @@ func (app *application) createOrganizationHandler(w http.ResponseWriter, r *http
 	}
 
 	// Add user
-	if err := app.store.Organization.AddMember(ctx, &member); err != nil {
+	if err := app.store.Organizations.AddMember(ctx, &member); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
@@ -86,7 +86,7 @@ func (app *application) addMemberHandler(w http.ResponseWriter, r *http.Request)
 		RoleID:         payload.RoleID,
 	}
 
-	if err := app.store.Organization.AddMember(ctx, member); err != nil {
+	if err := app.store.Organizations.AddMember(ctx, member); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
@@ -101,7 +101,7 @@ func (app *application) getMembersHandler(w http.ResponseWriter, r *http.Request
 	organization := app.getOrganizationFromContext(r)
 
 	ctx := r.Context()
-	members, err := app.store.Organization.GetMembers(ctx, organization.ID)
+	members, err := app.store.Organizations.GetMembers(ctx, organization.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
@@ -136,7 +136,7 @@ func (app *application) getOrganizationHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	ctx := r.Context()
-	organization, err := app.store.Organization.GetByID(ctx, orgID)
+	organization, err := app.store.Organizations.GetByID(ctx, orgID)
 	if err != nil {
 		app.logger.Error("failed to get organization from database", "error", err, "orgID", orgID)
 		switch {
@@ -187,7 +187,7 @@ func (app *application) organizationContextMiddleware(next http.Handler) http.Ha
 		app.logger.Info("organizationID extracted", "orgID", orgID)
 
 		ctx := r.Context()
-		organization, err := app.store.Organization.GetByID(ctx, orgID)
+		organization, err := app.store.Organizations.GetByID(ctx, orgID)
 		if err != nil {
 			app.logger.Error("failed to get organization from database", "error", err, "orgID", orgID)
 			switch {
@@ -207,7 +207,7 @@ func (app *application) organizationContextMiddleware(next http.Handler) http.Ha
 }
 
 func (app *application) isUserAdmin(ctx context.Context, orgID, userID int64) bool {
-	member, err := app.store.Organization.GetMember(ctx, orgID, userID)
+	member, err := app.store.Organizations.GetMember(ctx, orgID, userID)
 	if err != nil {
 		return false
 	}
@@ -216,6 +216,6 @@ func (app *application) isUserAdmin(ctx context.Context, orgID, userID int64) bo
 }
 
 func (app *application) isUserMemberOfOrganization(ctx context.Context, orgID, userID int64) bool {
-	_, err := app.store.Organization.GetMember(ctx, orgID, userID)
+	_, err := app.store.Organizations.GetMember(ctx, orgID, userID)
 	return err == nil
 }

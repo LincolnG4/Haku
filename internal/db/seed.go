@@ -8,7 +8,7 @@ import (
 	"regexp"  // Added for sanitization
 	"strings" // Added for sanitization
 
-	"github.com/LincolnG4/Haku/internal/store"
+	storepkg "github.com/LincolnG4/Haku/internal/store"
 )
 
 // Cleaned up the ghibliCharacters slice slightly (removed trailing space from Chihiro).
@@ -93,13 +93,86 @@ func formatEmailLocalPart(name string) string {
 	return s
 }
 
-func Seed(store store.Storage, db *sql.DB) {
+// Mapping from movie to characters
+var movieCharacters = map[string][]string{
+	"Spirited Away": {
+		"Chihiro Ogino", "Haku", "Yubaba", "Zeniba", "Kamaji", "Lin", "No-Face", "Boh", "Radish Spirit", "Aogaeru", "Kashira", "River Spirit", "Soot Sprites", "Akio Ogino", "Yūko Ogino", "Yu-bird",
+	},
+	"Princess Mononoke": {
+		"San (Princess Mononoke)", "Ashitaka", "Lady Eboshi", "Jigo", "Moro (Wolf God)", "Yakul (Red Elk)", "Kodama (Tree Spirits)",
+	},
+	"Howl's Moving Castle": {
+		"Sophie Hatter", "Howl Jenkins Pendragon", "Calcifer", "Markl", "Witch of the Waste", "Turnip Head (Prince Justin)",
+	},
+	"My Neighbor Totoro": {
+		"Satsuki Kusakabe", "Mei Kusakabe", "Totoro", "Catbus (Nekobasu)", "Kanta Ōgaki", "Granny",
+	},
+	"Kiki's Delivery Service": {
+		"Kiki", "Jiji", "Tombo Kopoli", "Ursula", "Osono",
+	},
+	"Ponyo": {
+		"Ponyo (Brunhilde)", "Sosuke", "Lisa", "Fujimoto", "Granmamare",
+	},
+	"Castle in the Sky": {
+		"Sheeta (Castle in the Sky)", "Pazu (Castle in the Sky)", "Colonel Muska (Castle in the Sky)",
+	},
+	"Nausicaä of the Valley of the Wind": {
+		"Nausicaä (Nausicaä of the Valley of the Wind)",
+	},
+	"Porco Rosso": {
+		"Porco Rosso (Porco Rosso)",
+	},
+}
+
+// Reverse mapping: character -> movie
+var characterMovie = func() map[string]string {
+	m := make(map[string]string)
+	for movie, chars := range movieCharacters {
+		for _, c := range chars {
+			m[c] = movie
+		}
+	}
+	return m
+}()
+
+func Seed(store storepkg.Storage, db *sql.DB) {
 	ctx := context.Background()
 
-	users := generateUsers(50)
+	// 1. Create organizations (movies)
+	orgIDs := make(map[string]int64)
+	for movie := range movieCharacters {
+		org := &storepkg.Organization{
+			Name:        movie,
+			Description: "Organization for the movie " + movie,
+		}
+		if err := store.Organizations.Create(ctx, org); err != nil {
+			log.Printf("error seeding organization %s: %v", org.Name, err)
+			return
+		}
+		orgIDs[movie] = org.ID
+	}
+
+	// 2. Create users and assign to organizations
+	users := generateUsersWithOrgs(ghibliCharacters, orgIDs)
 	for _, user := range users {
-		if err := store.Users.Create(ctx, user); err != nil {
+		// Set a default password for all users
+		_ = user.Password.Set("password123")
+		if err := store.Users.Create(ctx, &user.User); err != nil {
+			if strings.Contains(err.Error(), "duplicate key value") {
+				log.Printf("user %s already exists, skipping", user.Username)
+				continue
+			}
 			log.Printf("error seeding user %s: %v", user.Username, err)
+			return
+		}
+		// Add user to organization as Admin
+		member := &storepkg.OrganizationMember{
+			UserID:         user.ID, // user.ID is set after Create
+			OrganizationID: user.OrganizationID,
+			RoleID:         storepkg.AdminRole,
+		}
+		if err := store.Organizations.AddMember(ctx, member); err != nil {
+			log.Printf("error adding user %s to org: %v", user.Username, err)
 			return
 		}
 	}
@@ -115,27 +188,32 @@ func Seed(store store.Storage, db *sql.DB) {
 	log.Println("seeding completed")
 }
 
-func generateUsers(n int) []*store.User {
-	if n > len(ghibliCharacters) {
-		n = len(ghibliCharacters)
-	}
-	users := make([]*store.User, n)
+// Helper struct to keep org info with user
 
-	for i := 0; i < n; i++ {
-		name := ghibliCharacters[i]
+type userWithOrg struct {
+	storepkg.User
+	OrganizationID int64
+}
 
+func generateUsersWithOrgs(characters []string, orgIDs map[string]int64) []userWithOrg {
+	users := make([]userWithOrg, len(characters))
+	for i, name := range characters {
 		emailLocalPart := formatEmailLocalPart(name)
-
-		users[i] = &store.User{
-			Username: name,
-			Email:    emailLocalPart + "@ghibli.com",
+		movie := characterMovie[name]
+		orgID := orgIDs[movie]
+		users[i] = userWithOrg{
+			User: storepkg.User{
+				Username: name,
+				Email:    emailLocalPart + "@ghibli.com",
+			},
+			OrganizationID: orgID,
 		}
 	}
 	return users
 }
 
-func generatePipelines(n int, users []*store.User) []*store.Pipelines {
-	pipelines := make([]*store.Pipelines, n)
+func generatePipelines(n int, users []userWithOrg) []*storepkg.Pipelines {
+	pipelines := make([]*storepkg.Pipelines, n)
 	numUsers := len(users)
 
 	if numUsers == 0 {
@@ -144,9 +222,9 @@ func generatePipelines(n int, users []*store.User) []*store.Pipelines {
 
 	for i := 0; i < n; i++ {
 		user := users[rand.IntN(numUsers)]
-		pipelines[i] = &store.Pipelines{
-			UserID: user.ID,
-			Name:   user.Username + "'s pipeline",
+		pipelines[i] = &storepkg.Pipelines{
+			OrganizationID: user.OrganizationID,
+			Name:           user.Username + "'s pipeline",
 		}
 	}
 	return pipelines

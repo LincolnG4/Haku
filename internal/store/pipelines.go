@@ -18,10 +18,10 @@ const (
 
 type Pipelines struct {
 	// Basic Info
-	ID     int64  `json:"id"`
-	UserID int64  `json:"user_id"`
-	Name   string `json:"name"`
-	Status string `json:"status"`
+	ID             int64  `json:"id"`
+	OrganizationID int64  `json:"organization_id"`
+	Name           string `json:"name"`
+	Status         string `json:"status"`
 	// Creation Info
 	Version   int    `json:"version"`
 	CreatedAt string `json:"create_at"`
@@ -34,7 +34,7 @@ type PipelinesStore struct {
 
 func (s *PipelinesStore) Create(ctx context.Context, pipeline *Pipelines) error {
 	query := `
-	INSERT INTO pipelines (user_id, name, status, version)
+	INSERT INTO pipelines (organization_id, name, status, version)
 	VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -46,7 +46,7 @@ func (s *PipelinesStore) Create(ctx context.Context, pipeline *Pipelines) error 
 	err := s.db.QueryRowContext(
 		ctx,
 		query,
-		pipeline.UserID,
+		pipeline.OrganizationID,
 		pipeline.Name,
 		pipeline.Status,
 		pipeline.Version,
@@ -63,9 +63,9 @@ func (s *PipelinesStore) Create(ctx context.Context, pipeline *Pipelines) error 
 	return nil
 }
 
-func (s *PipelinesStore) GetByID(ctx context.Context, pipelineID int64) (*Pipelines, error) {
+func (s *PipelinesStore) GetByID(ctx context.Context, pipelineID int64) (Pipelines, error) {
 	query := `
-		SELECT id, user_id, name, status, version, created_at, updated_at 
+		SELECT id, organization_id, name, status, version, created_at, updated_at 
 		FROM pipelines WHERE id=$1
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -78,7 +78,7 @@ func (s *PipelinesStore) GetByID(ctx context.Context, pipelineID int64) (*Pipeli
 		pipelineID,
 	).Scan(
 		&pipeline.ID,
-		&pipeline.UserID,
+		&pipeline.OrganizationID,
 		&pipeline.Name,
 		&pipeline.Status,
 		&pipeline.Version,
@@ -89,13 +89,13 @@ func (s *PipelinesStore) GetByID(ctx context.Context, pipelineID int64) (*Pipeli
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrNotFound
+			return Pipelines{}, ErrNotFound
 		default:
-			return nil, err
+			return Pipelines{}, err
 		}
 	}
 
-	return &pipeline, nil
+	return pipeline, nil
 }
 
 func (s *PipelinesStore) Delete(ctx context.Context, pipelineID int64) error {

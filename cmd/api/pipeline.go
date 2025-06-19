@@ -33,8 +33,8 @@ func (app *application) createPipelineHandler(w http.ResponseWriter, r *http.Req
 
 	ctx := r.Context()
 	pipeline := &store.Pipelines{
-		UserID: user.ID,
-		Name:   payload.Name,
+		OrganizationID: user.ID,
+		Name:           payload.Name,
 	}
 
 	if err := app.store.Pipelines.Create(ctx, pipeline); err != nil {
